@@ -20,7 +20,7 @@
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #f0f0f0;
+            background-color:rgba(255, 255, 255, 0.2);
             color: #333;
         }
         .container {
@@ -330,6 +330,8 @@
             }
 
             #fireworks-canvas {
+
+                opacity: 0.7;
                 position: fixed; /* Pour que le canvas recouvre toute la page */
                 top: 0;
                 left: 0;
@@ -342,7 +344,18 @@
             #fireworks-sound {
                 display: none; /* Masquer l'élément audio */
             }
-            
+            .artifice {
+
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 100px;
+                height: 100px;
+              }
+
+
+               
        
     </style>
 </head>
@@ -415,6 +428,7 @@
                         <div id="scoreDisplay">Score : 0</div>
                     </div>
                 </div>
+                <div class="artifice">...</div>
             </section>
 
             <section id="astuces">
@@ -651,11 +665,18 @@
         }
     
         function regenerateWallet() {
+            let total = 0;
             wallet.forEach(item => {
                 item.quantity = Math.floor(Math.random() * (item.value < 1 ? 20 : 5));
-                item.returned = false;
+                total += item.value * item.quantity;
             });
             updateWalletDisplay();
+            while (total > 500) {
+                const randomIndex = Math.floor(Math.random() * wallet.length);
+                const randomItem = wallet[randomIndex];
+                randomItem.quantity--;
+                total -= randomItem.value;
+            }
         }
 
          // Fonction pour mettre à jour l'affichage du score
@@ -664,6 +685,7 @@
             if (score >= 2) {
                 launchFireworks();
                 playFireworksSound();
+                animationId = requestAnimationFrame(animate);
             }
             setTimeout(() => {
                 cancelAnimationFrame(animationId); // Arrêter l'animation
@@ -673,6 +695,33 @@
             }, 5000); // 5000 millisecondes = 5 secondes
 
         }
+
+        let gameState = 'playing'; // État initial du jeu
+
+function updateFireworksDisplay() {
+    if (gameState === 'playing') {
+        document.getElementById('fireworks-canvas').style.display = 'block';
+    } else {
+        document.getElementById('fireworks-canvas').style.display = 'none';
+    }
+}
+
+// Mettez à jour l'état du jeu et l'affichage de l'artifice lorsque le joueur répond correctement ou incorrectement
+function checkAnswer() {
+    // ...
+    if (userAnswer === correctAnswer) {
+        // ...
+        gameState = 'correct';
+        updateFireworksDisplay();
+        // ...
+    } else {
+        // ...
+        gameState = 'incorrect';
+        updateFireworksDisplay();
+        // ...
+    }
+}
+
 
         function launchFireworks() {
             const canvas = document.getElementById('fireworks-canvas');
@@ -756,6 +805,8 @@
         
             animate();
         }
+
+
          
         function playFireworksSound() {
             const audio = document.getElementById('fireworks-sound');
@@ -763,8 +814,11 @@
             audio.play();
         }
         
+        function stopFireworks() {
+            cancelAnimationFrame(animationId);
+            animationId = undefined;
+        }
 
-    
         document.getElementById('wallet-container').onclick = function() {
             document.getElementById('wallet').classList.toggle('open');
         };
@@ -824,6 +878,29 @@
             });
         });
 
+        function showOnlyFireworks() {
+            const elements = document.querySelectorAll('*');
+            elements.forEach(element => {
+                if (element.id !== 'fireworks-canvas') {
+                    element.style.display = 'none';
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                // Ignorer l'événement si la touche Entrée a été appuyée
+                return;
+            }
+            // Gérer l'événement pour d'autres touches de clavier
+            // ...
+        });
+        
+        document.getElementById('reset-button').addEventListener('click', function() {
+            setTimeout(function() {
+                window.location.reload();
+            }, 3000);
+        });
         
     </script>
 </body>
