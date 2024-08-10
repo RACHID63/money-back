@@ -561,23 +561,23 @@
         {value: 0.01, type: 'coin', quantity: 4 , image: 'image/1cent.png'}
     ];
 
-        
-        let amountToPay = 0;
-        let amountPaid = 0;
-        let score = 0; // Ajout du compteur de score
+    let amountToPay = 0;
+    let amountPaid = 0;
+    let score = 0;
+    let animationId; 
 
-        function updateWalletTotal() {
-            const total = wallet.reduce((sum, item) => sum + item.value * item.quantity, 0);
-            document.getElementById('wallet-total').textContent = total.toFixed(2);
-        }
+    function updateWalletTotal() {
+        const total = wallet.reduce((sum, item) => sum + item.value * item.quantity, 0);
+        document.getElementById('wallet-total').textContent = total.toFixed(2);
+    }
 
-        let twoDigitsCheckbox = document.getElementById('twoDigits');
+    let twoDigitsCheckbox = document.getElementById('twoDigits');
     let threeDigitsCheckbox = document.getElementById('threeDigits');
     document.getElementById('clear-button').onclick = function() {
-        document.getElementById('change-input').value = ''; // Effacer la valeur du champ de saisie
-        document.getElementById('result').textContent = ''; // Effacer le message de résultat précédent
+        document.getElementById('change-input').value = ''; 
+        document.getElementById('result').textContent = ''; 
     };
-    
+
 
     twoDigitsCheckbox.addEventListener('change', function() {
         if (this.checked) {
@@ -592,322 +592,273 @@
         }
         initializeGame();
     });
-    
-        function initializeGame() {
-            if (threeDigitsCheckbox.checked) {
-                amountToPay = (Math.random() * 900 + 100).toFixed(2);
-            } else {
-                amountToPay = (Math.random() * 90 + 10).toFixed(2);
-            }
-            amountPaid = 0;
-            document.getElementById('amount-to-pay').textContent = amountToPay;
-            document.getElementById('amount-paid').textContent = '0.00';
-            
-            updateWalletDisplay();
-            updateWalletTotal();
-        }
-    
-        function updateWalletDisplay() {
-            const billsContent = document.getElementById('bills-content');
-            const coinsContent = document.getElementById('coins-content');
-            billsContent.innerHTML = '';
-            coinsContent.innerHTML = '';
-    
-            wallet.forEach(item => {
-                for (let i = 0; i < item.quantity; i++) {
-                    const element = document.createElement('div');
-                    element.className = item.type;
-                    if (item.image) {
-                        element.style.backgroundImage = `url('${item.image}')`;
-                        element.setAttribute('data-value', item.value);
-                    } else {
-                        element.textContent = item.value.toFixed(2) + ' €';
-                    }
-                    element.onclick = (e) => {
-                        e.stopPropagation();
-                        selectMoney(item);
-                    };
-                    if (item.returned) {
-                        element.classList.add('returned');
-                    }
-                    if (item.type === 'bill') {
-                        billsContent.appendChild(element);
-                    } else {
-                        coinsContent.appendChild(element);
-                    }
-                }
-            });
-            updateWalletTotal();
-        }
-    
-        function selectMoney(item) {
-            if (item.quantity > 0) {
-                amountPaid += item.value;
-                item.quantity--;
-                document.getElementById('amount-paid').textContent = amountPaid.toFixed(2);
-                updateWalletDisplay();
-            }
-        }
-    
-        function returnChange(change) {
-            const denominations = [50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01];
-            for (let denom of denominations) {
-                while (change >= denom) {
-                    let item = wallet.find(i => i.value === denom);
-                    if (item) {
-                        item.quantity++;
-                        item.returned = true;
-                        change = (change - denom).toFixed(2);
-                    }
-                }
-            }
-            updateWalletDisplay();
-        }
-    
-        function regenerateWallet() {
-            let total = 0;
-            wallet.forEach(item => {
-                item.quantity = Math.floor(Math.random() * (item.value < 1 ? 20 : 5));
-                total += item.value * item.quantity;
-            });
-            updateWalletDisplay();
-            while (total > 500) {
-                const randomIndex = Math.floor(Math.random() * wallet.length);
-                const randomItem = wallet[randomIndex];
-                randomItem.quantity--;
-                total -= randomItem.value;
-            }
-        }
 
-         // Fonction pour mettre à jour l'affichage du score
-         function updateScoreDisplay() {
-            document.getElementById('scoreDisplay').textContent = `Score : ${score}`;
-            if (score >= 2) {
-                launchFireworks();
-                playFireworksSound();
-                animationId = requestAnimationFrame(animate);
-            }
-            setTimeout(() => {
-                cancelAnimationFrame(animationId); // Arrêter l'animation
-                const audio = document.getElementById('fireworks-sound');
-                audio.pause(); // Arrêter le son
-                audio.currentTime = 0; // Remettre le son au début
-            }, 5000); // 5000 millisecondes = 5 secondes
-
-        }
-
-        let gameState = 'playing'; // État initial du jeu
-
-function updateFireworksDisplay() {
-    if (gameState === 'playing') {
-        document.getElementById('fireworks-canvas').style.display = 'block';
-    } else {
-        document.getElementById('fireworks-canvas').style.display = 'none';
-    }
-}
-
-// Mettez à jour l'état du jeu et l'affichage de l'artifice lorsque le joueur répond correctement ou incorrectement
-function checkAnswer() {
-    // ...
-    if (userAnswer === correctAnswer) {
-        // ...
-        gameState = 'correct';
-        updateFireworksDisplay();
-        // ...
-    } else {
-        // ...
-        gameState = 'incorrect';
-        updateFireworksDisplay();
-        // ...
-    }
-}
-
-
-        function launchFireworks() {
-            const canvas = document.getElementById('fireworks-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        
-            const fireworks = [];
-            const particles = [];
-        
-            // Fonction pour créer un feu d'artifice
-            function createFirework(x, y) {
-                const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                const velocity = {
-                    x: (Math.random() - 0.5) * 8,
-                    y: (Math.random() - 0.5) * 8
-                };
-                return { x, y, color, velocity };
-            }
-        
-            // Fonction pour créer des particules
-            function createParticles(x, y, color) {
-                for (let i = 0; i < 50; i++) {
-                    const particle = {
-                        x,
-                        y,
-                        color,
-                        velocity: {
-                            x: (Math.random() - 0.5) * 5,
-                            y: (Math.random() - 0.5) * 5
-                        },
-                        alpha: 1
-                    };
-                    particles.push(particle);
-                }
-            }
-        
-            // Fonction d'animation
-            function animate() {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-                fireworks.forEach((firework, index) => {
-                    firework.x += firework.velocity.x;
-                    firework.y += firework.velocity.y;
-                    firework.velocity.y += 0.05; // Gravité
-        
-                    ctx.beginPath();
-                    ctx.arc(firework.x, firework.y, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = firework.color;
-                    ctx.fill();
-        
-                    if (firework.velocity.y >= 0) {
-                        createParticles(firework.x, firework.y, firework.color);
-                        fireworks.splice(index, 1);
-                    }
-                });
-        
-                particles.forEach((particle, index) => {
-                    particle.x += particle.velocity.x;
-                    particle.y += particle.velocity.y;
-                    particle.alpha -= 0.01;
-        
-                    ctx.beginPath();
-                    ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
-                    ctx.fillStyle = particle.color;
-                    ctx.globalAlpha = particle.alpha;
-                    ctx.fill();
-        
-                    if (particle.alpha <= 0) {
-                        particles.splice(index, 1);
-                    }
-                });
-        
-                if (fireworks.length < 10) {
-                    fireworks.push(createFirework(Math.random() * canvas.width, canvas.height));
-                }
-        
-                requestAnimationFrame(animate);
-            }
-        
-            animate();
-        }
-
-
-         
-        function playFireworksSound() {
-            const audio = document.getElementById('fireworks-sound');
-            audio.currentTime = 0; // S'assurer que le son est au début avant de le jouer
-            audio.play();
-        }
-        
-        function stopFireworks() {
-            cancelAnimationFrame(animationId);
-            animationId = undefined;
-        }
-
-        document.getElementById('wallet-container').onclick = function() {
-            document.getElementById('wallet').classList.toggle('open');
-        };
-    
-        document.getElementById('regenerate-wallet').onclick = regenerateWallet;
-    
-       document.getElementById('change-form').onsubmit = function(e) {
-    e.preventDefault(); // Empêche le rechargement de la page par défaut lors de la soumission du formulaire
-
-    // Récupération de la valeur saisie par l'utilisateur et conversion en nombre
-    const changeInput = parseFloat(document.getElementById('change-input').value);
-
-    // Calcul de la monnaie à rendre réelle
-    const actualChange = (amountPaid - amountToPay).toFixed(2);
-
-    // Récupération de l'élément pour afficher le résultat
-    const resultElement = document.getElementById('result');
-
-    // Vérification si la monnaie saisie est correcte
-    if (changeInput === parseFloat(actualChange)) {
-        // Si la réponse est correcte
-        resultElement.textContent = 'Correct! Bien joué!';
-        resultElement.style.color = 'green'; // Afficher le message en vert
-
-        // Si la monnaie à rendre est positive, mettre à jour le portefeuille
-        if (actualChange > 0) {
-            returnChange(parseFloat(actualChange));
-        }
-
-        // Incrémenter le score et mettre à jour l'affichage
-        score++;
-        updateScoreDisplay();
-    } else {
-        // Si la réponse est incorrecte
-        resultElement.textContent = `Désolé, ce n'est pas correct. La bonne réponse était ${actualChange} €.`;
-        resultElement.style.color = 'red'; // Afficher le message en rouge
-    }
-
-    // Réinitialiser le jeu après un délai de 3 secondes
-    setTimeout(initializeGame, 3000); 
-};
-    
-        initializeGame();
-        const tabButtons = document.querySelectorAll('.tab-button');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                event.stopPropagation(); // Empêche la fermeture du portefeuille
-                
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                
-                const tabContents = document.querySelectorAll('.tab-content');
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                const targetTab = button.getAttribute('data-tab');
-                document.getElementById(`${targetTab}-content`).classList.add('active');
-            });
-        });
-
-        function showOnlyFireworks() {
-            const elements = document.querySelectorAll('*');
-            elements.forEach(element => {
-                if (element.id !== 'fireworks-canvas') {
-                    element.style.display = 'none';
-                }
-            });
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                // Ignorer l'événement si la touche Entrée a été appuyée
-                return;
-            }
-            // Gérer l'événement pour d'autres touches de clavier
-            // ...
-        });
-        
-      
-        const fireworksCanvas = document.querySelector('#fireworks-canvas');
-        if (fireworksCanvas) {
-            fireworksCanvas.addEventListener('keydown', function(event) {
-                if (event.key === 'Enter') {
-                    stopFireworks();
-                }
-            });
+    function initializeGame() {
+        if (threeDigitsCheckbox.checked) {
+            amountToPay = (Math.random() * 900 + 100).toFixed(2);
         } else {
-            console.error('L\'élément #fireworks-canvas n\'a pas été trouvé dans le document.');
+            amountToPay = (Math.random() * 90 + 10).toFixed(2);
         }
+        amountPaid = 0;
+        document.getElementById('amount-to-pay').textContent = amountToPay;
+        document.getElementById('amount-paid').textContent = '0.00';
         
+        updateWalletDisplay();
+        updateWalletTotal();
+    }
+
+    function updateWalletDisplay() {
+        const billsContent = document.getElementById('bills-content');
+        const coinsContent = document.getElementById('coins-content');
+        billsContent.innerHTML = '';
+        coinsContent.innerHTML = '';
+
+        wallet.forEach(item => {
+            for (let i = 0; i < item.quantity; i++) {
+                const element = document.createElement('div');
+                element.className = item.type;
+                if (item.image) {
+                    element.style.backgroundImage = `url('${item.image}')`;
+                    element.setAttribute('data-value', item.value);
+                } else {
+                    element.textContent = item.value.toFixed(2) + ' €';
+                }
+                element.onclick = (e) => {
+                    e.stopPropagation();
+                    selectMoney(item);
+                };
+                if (item.returned) {
+                    element.classList.add('returned');
+                }
+                if (item.type === 'bill') {
+                    billsContent.appendChild(element);
+                } else {
+                    coinsContent.appendChild(element);
+                }
+            }
+        });
+        updateWalletTotal();
+    }
+
+    function selectMoney(item) {
+        if (item.quantity > 0) {
+            amountPaid += item.value;
+            item.quantity--;
+            document.getElementById('amount-paid').textContent = amountPaid.toFixed(2);
+            updateWalletDisplay();
+        }
+    }
+
+    function returnChange(change) {
+        const denominations = [50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01];
+        for (let denom of denominations) {
+            while (change >= denom) {
+                let item = wallet.find(i => i.value === denom);
+                if (item) {
+                    item.quantity++;
+                    item.returned = true;
+                    change = (change - denom).toFixed(2);
+                }
+            }
+        }
+        updateWalletDisplay();
+    }
+
+    function regenerateWallet() {
+        let total = 0;
+        wallet.forEach(item => {
+            item.quantity = Math.floor(Math.random() * (item.value < 1 ? 20 : 5));
+            total += item.value * item.quantity;
+        });
+        updateWalletDisplay();
+        while (total > 500) {
+            const randomIndex = Math.floor(Math.random() * wallet.length);
+            const randomItem = wallet[randomIndex];
+            randomItem.quantity--;
+            total -= randomItem.value;
+        }
+    }
+
+    function updateScoreDisplay() {
+        document.getElementById('scoreDisplay').textContent = `Score : ${score}`;
+        if (score >= 2) {
+            launchFireworks();
+        }
+    }
+
+    function launchFireworks() {
+        const canvas = document.getElementById('fireworks-canvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.querySelector('.game-container');
+        canvas.width = gameContainer.offsetWidth;
+        canvas.height = gameContainer.offsetHeight;
+    
+        const fireworks = [];
+        const particles = [];
+    
+        function createFirework(x, y) {
+            const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            const velocity = {
+                x: (Math.random() - 0.5) * 8,
+                y: (Math.random() - 0.5) * 8
+            };
+            return { x, y, color, velocity };
+        }
+    
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 50; i++) {
+                const particle = {
+                    x,
+                    y,
+                    color,
+                    velocity: {
+                        x: (Math.random() - 0.5) * 5,
+                        y: (Math.random() - 0.5) * 5
+                    },
+                    alpha: 1
+                };
+                particles.push(particle);
+            }
+        }
+    
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    
+            fireworks.forEach((firework, index) => {
+                firework.x += firework.velocity.x;
+                firework.y += firework.velocity.y;
+                firework.velocity.y += 0.05; 
+    
+                ctx.beginPath();
+                ctx.arc(firework.x, firework.y, 3, 0, Math.PI * 2);
+                ctx.fillStyle = firework.color;
+                ctx.fill();
+    
+                if (firework.velocity.y >= 0) {
+                    createParticles(firework.x, firework.y, firework.color);
+                    fireworks.splice(index, 1);
+                }
+            });
+    
+            particles.forEach((particle, index) => {
+                particle.x += particle.velocity.x;
+                particle.y += particle.velocity.y;
+                particle.alpha -= 0.01;
+    
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = particle.color;
+                ctx.globalAlpha = particle.alpha;
+                ctx.fill();
+    
+                if (particle.alpha <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+    
+            if (fireworks.length < 10) {
+                fireworks.push(createFirework(Math.random() * canvas.width, canvas.height));
+            }
+    
+            animationId = requestAnimationFrame(animate); 
+        }
+    
+        animate();
+
+        setTimeout(() => {
+            cancelAnimationFrame(animationId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+        }, 5000);
+    }
+
+    function playFireworksSound() {
+        const audio = document.getElementById('fireworks-sound');
+        audio.currentTime = 0;
+        audio.play();
+    }
+    
+    function stopFireworks() {
+        cancelAnimationFrame(animationId);
+        animationId = undefined;
+    }
+
+    document.getElementById('wallet-container').onclick = function() {
+        document.getElementById('wallet').classList.toggle('open');
+    };
+
+    document.getElementById('regenerate-wallet').onclick = regenerateWallet;
+
+    document.getElementById('change-form').onsubmit = function(e) {
+        e.preventDefault(); 
+    
+        const changeInput = parseFloat(document.getElementById('change-input').value);
+        const actualChange = (amountPaid - amountToPay).toFixed(2);
+        const resultElement = document.getElementById('result');
+    
+        if (changeInput === parseFloat(actualChange)) {
+            resultElement.textContent = 'Correct! Bien joué!';
+            resultElement.style.color = 'green'; 
+    
+            if (actualChange > 0) {
+                returnChange(parseFloat(actualChange));
+            }
+    
+            score++;
+            updateScoreDisplay();
+            
+            
+        } else {
+            resultElement.textContent = `Désolé, ce n'est pas correct. La bonne réponse était ${actualChange} €.`;
+            resultElement.style.color = 'red'; 
+        }
+    
+        setTimeout(initializeGame, 3000); 
+    };
+
+    initializeGame();
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.stopPropagation(); 
+            
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            const targetTab = button.getAttribute('data-tab');
+            document.getElementById(`${targetTab}-content`).classList.add('active');
+        });
+    });
+
+    function showOnlyFireworks() {
+        const elements = document.querySelectorAll('*');
+        elements.forEach(element => {
+            if (element.id !== 'fireworks-canvas') {
+                element.style.display = 'none';
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            return;
+        }
+    });
+    
+  
+    const fireworksCanvas = document.querySelector('#fireworks-canvas');
+    if (fireworksCanvas) {
+        fireworksCanvas.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                stopFireworks();
+            }
+        });
+    } else {
+        console.error('L\'élément #fireworks-canvas n\'a pas été trouvé dans le document.');
+    }
+    
         
     </script>
 </body>
